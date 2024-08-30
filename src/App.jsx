@@ -7,7 +7,7 @@ import Login from './screen/Login';
 import Signup from './screen/Signup';
 import FoodItem from './screen/FoodItem';
 import { CartProvider } from './ContextReducer';
-import Cart from './screen/cart';
+import Cart from './screen/Cart';
 import MyOrder from './screen/MyOrder';
 // import Service from './screen/Services';
 

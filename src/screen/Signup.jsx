@@ -2,52 +2,63 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 export default function Signup() {
-  const [formData, setformData] = useState({
+  const [formData, setFormData] = useState({
     name: "",
     password: "",
     email: "",
     location: "",
   });
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
-  const HandleChange = (e) => {
-    setformData({
+  const handleChange = (e) => {
+    setFormData({
       ...formData,
       [e.target.name]: e.target.value,
     });
   };
 
-  const submit =async (e) => {
+  const submit = async (e) => {
     e.preventDefault();
-  const fetchData = await fetch("http://localhost:4000/api/createuser", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        name: formData.name,
-        password: formData.password,
-        email: formData.email,
-        location: formData.location,
-      }),
-    })
-      .then((res) => res.json())
-      .catch((err) => alert(err));
-       console.log(fetchData);
-       if(!fetchData.success){
-        alert(fetchData.error)
-       }if(fetchData.success){
-        navigate("/login")
-       }
-
     
+    try {
+      const response = await fetch("http://localhost:4000/api/auth/register", { 
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          password: formData.password,
+          email: formData.email,
+          location: formData.location,
+        }),
+      });
+
+      const data = await response.json();
+      console.log(data);
+
+      if (!response.ok) { // Check if response status is not OK
+        alert(data.message || "Something went wrong");
+        return;
+      }
+
+      // Assuming `data` contains `token` if successful
+      if (data.token) {
+        navigate("/login");
+      } else {
+        alert("Registration failed");
+      }
+
+    } catch (err) {
+      alert("An error occurred: " + err.message);
+    }
   };
 
   return (
     <div className="main">
       <div className="container" id="container">
         <div className="form-container sign-in">
-          <form>
+          <form onSubmit={submit}>
             <h2>Sign up</h2>
             <div className="social-icons">
               <a href="#" className="icon">
@@ -63,33 +74,37 @@ export default function Signup() {
                 <i className="fa-brands fa-linkedin-in" />
               </a>
             </div>
-            <span>create new user here</span>
+            <span>Create a new account</span>
             <input
               type="text"
-              placeholder="username"
+              placeholder="Username"
               name="name"
-              onChange={HandleChange}
+              onChange={handleChange}
+              required
             />
             <input
               type="email"
               placeholder="Email"
               name="email"
-              onChange={HandleChange}
+              onChange={handleChange}
+              required
             />
             <input
               type="password"
               placeholder="Password"
               name="password"
-              onChange={HandleChange}
+              onChange={handleChange}
+              required
             />
             <input
               type="text"
-              placeholder="Adress"
+              placeholder="Address"
               name="location"
-              onChange={HandleChange}
+              onChange={handleChange}
+              required
             />
 
-            <button onClick={submit}>Sign In</button>
+            <button type="submit">Sign Up</button>
           </form>
         </div>
         <div className="toggle-container">

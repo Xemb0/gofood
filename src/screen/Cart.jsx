@@ -8,24 +8,59 @@ export default function Cart() {
 
     const Data = useCartState()
     const dispatch = useCartDispatch()
-    const placeorder = async (e) => {
-      e.preventDefault();
-      const fetchData = await fetch("http://localhost:4000/api/order", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "order-time": new Date().toISOString(), // Sending order time via headers
-        },
-        body: JSON.stringify({
-          order_data: Data, // Pass the cart data
-          user: useremail,
-        }),
-      });
-      // dispatch({type: "CLEAR"})
-     
-      
-      
-    };
+
+
+  const handleCardClick = async (id, price) => {
+    console.log("Item clicked with ID:", id);
+    const item = data.find((item) => item._id === id);
+    if (item) {
+      setSelectedItem(item);
+      console.log('Selected item:', item); // Logging item to verify
+  
+      const token = localStorage.getItem('AuthToken');
+      if (!token) {
+        console.error('No AuthToken found. Please log in.');
+        return;
+      } else {
+        console.log('Token:', token);
+      }
+  
+      try {
+        // Decode the token to get the user ID
+        const decodedToken = parseJwt(token);
+        const userId = decodedToken ? decodedToken.user_id : null;
+        if (!userId) {
+          throw new Error('User ID not found in token.');
+        }
+        console.log('User ID:', userId);
+  
+        const response = await fetch('http://localhost:4000/api/auth/cart/add', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            userId,
+            itemId: item._id,
+            name: item.name,
+            price: price, // Send price here
+            quantity: 1,
+          }),
+        });
+  
+        if (!response.ok) {
+          throw new Error(`Network response was not ok: ${response.statusText}`);
+        }
+  
+        const result = await response.json();
+        console.log('Item added to cart successfully:', result);
+      } catch (error) {
+        console.error('Error adding item to cart:', error);
+      }
+    }
+  };
+  
     
     let total=0
     let TotalPrice = Data.reduce((total ,item)=>total+item.price,0)
@@ -66,7 +101,7 @@ export default function Cart() {
 </table>
 <div>
 <h1>Total Price: {TotalPrice}</h1>
-<button className="btn btn-success" onClick={placeorder} > Place Your Order</button>
+<button className="btn btn-success" onClick={() => handleCardClick(item.id, item.price)} > Place Your Order</button>
 
 
 </div>

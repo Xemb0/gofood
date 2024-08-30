@@ -1,19 +1,18 @@
 import React, { useRef, useState, useEffect } from "react";
 import { useCartDispatch, useCartState } from "../ContextReducer";
 
-export default function Card({ id, name, description, img, option }) {
+export default function Card({ id, name, description, img, option, onClick }) {
   const [number, setNumber] = useState(1);
   const [size, setSize] = useState("");
   const dispatch = useCartDispatch();
-
-  const sizeRef = useRef();
   const data = useCartState();
-  const finalPrice = number * parseInt(option[size]);
-  //console.log(finalPrice);
+  const sizeRef = useRef();
+
+  // Calculate finalPrice based on selected size and quantity
+  const finalPrice = number * parseInt(option[size] || 0);
 
   const AddToCart = async () => {
     let food = null;
-
     // Check if an item with the same id and size already exists in the cart
     for (let item of data) {
       if (item.id === id && item.size === size) {
@@ -22,13 +21,18 @@ export default function Card({ id, name, description, img, option }) {
       }
     }
 
-    if (food !== null) {
+    // Debugging logs
+    console.log('Item ID:', id);
+    console.log('Selected Size:', size);
+    console.log('Final Price:', finalPrice);
+
+    if (food) {
       // If the item with the same size exists, update its quantity and price
       await dispatch({
         type: "UPDATE",
         id: id,
         qut: food.qut + number,
-        price: (food.qut + number) * parseInt(option[size]),
+        price: (food.qut + number) * parseInt(option[size] || 0),
         size: size,
       });
     } else {
@@ -41,19 +45,19 @@ export default function Card({ id, name, description, img, option }) {
         img: img,
         qut: number,
         size: size,
-        price: finalPrice,
+        price: finalPrice, // Ensure this value is correct
       });
     }
-
-    console.log(data);
   };
 
   useEffect(() => {
-    setSize(sizeRef.current.value);
+    if (sizeRef.current) {
+      setSize(sizeRef.current.value);
+    }
   }, []);
 
   return (
-    <div className="m-2">
+    <div className="m-2" onClick={onClick}> {/* Call onClick when card is clicked */}
       <div
         className="card"
         style={{ width: "19rem", maxHeight: "450px", overflow: "hidden" }}
@@ -62,28 +66,26 @@ export default function Card({ id, name, description, img, option }) {
           <img
             src={img}
             className="card-img-top"
-            alt="..."
+            alt={name}
             style={{ maxHeight: "170px", objectFit: "cover" }}
           />
         </div>
-        <div className="card-body ">
+        <div className="card-body">
           <h5 className="card-title">{name}</h5>
           <p className="card-text">{description}</p>
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
               <button
                 type="button"
-                className=" btn btn-success "
-                onClick={() => {
-                  setNumber(number + 1);
-                }}
+                className="btn btn-success"
+                onClick={() => setNumber(number + 1)}
               >
                 +
               </button>
               {number}
               <button
                 type="button"
-                className="btn btn-success "
+                className="btn btn-success"
                 onClick={() => {
                   if (number > 1) {
                     setNumber(number - 1);
@@ -110,7 +112,7 @@ export default function Card({ id, name, description, img, option }) {
               <h6 className="card-title">₹{finalPrice}</h6>
             </div>
           </div>
-          <hr></hr>
+          <hr />
           <button type="button" className="btn btn-success" onClick={AddToCart}>
             Add To Cart
           </button>
